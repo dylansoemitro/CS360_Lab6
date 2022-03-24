@@ -9,6 +9,8 @@ from collections import defaultdict
 from sklearn.datasets import fetch_openml
 from sklearn import datasets
 from sklearn.svm import SVC
+from sklearn import svm
+from sklearn.linear_model import Perceptron
 """
 # code for generating artificial data
 X, y = make_gaussian_quantiles(
@@ -35,25 +37,23 @@ X, y = mnist["data"], mnist["target"]
 X_train, X_test, y_train, y_test = X[:1000], X[60000:], y[:1000], y[60000:]
 depths = [x for x in range(1, 13, 2)]
 estimators = [x for x in range(1, 1001, 10)]
-kernels = ["rbf", "sigmoid", "poly", "linear"]
 accuracies = []
 classifiers = defaultdict(dict)
 scores = defaultdict(dict)
-for kernel in kernels:
-    for max_estimators in estimators:
-        classifier = AdaBoostClassifier(
-            base_estimator=SVC(kernel = kernel),
-            n_estimators=max_estimators,
-            learning_rate=1.0,
-            algorithm="SAMME")
-        classifier.fit(X_train, y_train)
-        classifiers[kernel][max_estimators] = classifier
-        score = classifier.score(X_test, y_test)
-        print("Kernel: " +  kernel + " Max estimators: " + str(max_estimators) + " Score: " + str(score))
-        scores[kernel][max_estimators] = score
-    print(list(scores[kernel].values()))
-    print(estimators)
-    plt.plot(estimators, list(scores[kernel].values()), label = "Kernel: " + kernel)
+for max_estimators in estimators:
+    classifier = AdaBoostClassifier(
+        base_estimator=Perceptron(),
+        n_estimators=max_estimators,
+        learning_rate=1.0,
+        algorithm="SAMME")
+    classifier.fit(X_train, y_train)
+    classifiers["lr"][max_estimators] = classifier
+    score = classifier.score(X_test, y_test)
+    print("Perceptron w/" + " Max estimators: " + str(max_estimators) + " Score: " + str(score))
+    scores["lr"][max_estimators] = score
+print(list(scores["lr"].values()))
+print(estimators)
+plt.plot(estimators, list(scores["lr"].values()), label = "Perceptron")
 
 plt.xlabel("Maximum number of Estimators")
 plt.ylabel("Accuracy")

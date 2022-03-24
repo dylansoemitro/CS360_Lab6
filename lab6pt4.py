@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 
 from sklearn.datasets import make_gaussian_quantiles
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
@@ -9,7 +8,8 @@ from sklearn.linear_model import LogisticRegression
 from collections import defaultdict
 from sklearn.datasets import fetch_openml
 from sklearn import datasets
-
+from sklearn.svm import SVC
+from sklearn import svm
 """
 # code for generating artificial data
 X, y = make_gaussian_quantiles(
@@ -35,27 +35,24 @@ X, y = mnist["data"], mnist["target"]
 #X_train, X_test, y_train, y_test = X[:60000], X[60000:], y[:60000], y[60000:]
 X_train, X_test, y_train, y_test = X[:60000], X[60000:], y[:60000], y[60000:]
 depths = [x for x in range(1, 13, 2)]
-estimators = [x for x in range(1, 1002, 100)]
-depths = [5]
-estimators = [1000]
+estimators = [x for x in range(1, 1001, 10)]
 accuracies = []
 classifiers = defaultdict(dict)
 scores = defaultdict(dict)
-for depth in depths:
-    for max_estimators in estimators:
-        classifier = AdaBoostClassifier(
-            RandomForestClassifier(max_depth=depth),
-            n_estimators=max_estimators,
-            learning_rate=1.0,
-            algorithm="SAMME")
-        classifier.fit(X_train, y_train)
-        classifiers[depth][max_estimators] = classifier
-        score = classifier.score(X_test, y_test)
-        print("Depth: " +  str(depth) + " Max estimators: " + str(max_estimators) + " Score: " + str(score))
-        scores[depth][max_estimators] = score
-    print(list(scores[depth].values()))
-    print(estimators)
-    plt.plot(estimators, list(scores[depth].values()), label = "Depth: " + str(depth))
+for max_estimators in estimators:
+    classifier = AdaBoostClassifier(
+        base_estimator=svm.SVC(probability=True,kernel='linear'),
+        n_estimators=max_estimators,
+        learning_rate=1.0,
+        algorithm="SAMME")
+    classifier.fit(X_train, y_train)
+    classifiers["lr"][max_estimators] = classifier
+    score = classifier.score(X_test, y_test)
+    print("Logistic Regression w/" + " Max estimators: " + str(max_estimators) + " Score: " + str(score))
+    scores["lr"][max_estimators] = score
+print(list(scores["lr"].values()))
+print(estimators)
+plt.plot(estimators, list(scores["lr"].values()), label = "SVM")
 
 plt.xlabel("Maximum number of Estimators")
 plt.ylabel("Accuracy")
